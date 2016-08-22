@@ -9,7 +9,7 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-    dump_sup:start_link(kv, 32).
+    dump_sup:start_link(dump, 32).
 
 stop(_State) ->
     ok.
