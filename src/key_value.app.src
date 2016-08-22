@@ -1,0 +1,12 @@
+{application, key_value,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { key_value_app, []}},
+  {env, []}
+ ]}.
