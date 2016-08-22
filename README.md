@@ -3,16 +3,15 @@ This is a very simple database. It only stores one size of block. here is an exa
 
 ```
 1> ID = kv,
-1> dump_app:start(normal, [ID]).
-ok
+2> dump_sup:start_link(kv, 5).
 {ok,<0.37.0>}
-2> V = <<3,2,1,5,6>>.
+3> V = <<3,2,1,5,6>>.
 <<3,2,1,5,6>>
-3> Location = dump:put(V, ID).
+4> Location = dump:put(V, ID).
 15992
-4> V = dump:get(Location, ID).
+5> V = dump:get(Location, ID).
 <<3,2,1,5,6>>
-5>
+6>
 ```
 
 it uses the atom ```kv``` so that you can start more than one dump, and give them different names.
