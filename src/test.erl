@@ -1,7 +1,7 @@
 -module(test).
 -export([test/0]).
-
 test() ->
+    dump_sup:start_link(kv, 5),
     V1 = <<5,4,3,2,1>>,
     V2 = <<5,4,3,2,1>>,
     V3 = <<5,4,3,2,1>>,
