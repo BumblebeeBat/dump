@@ -1,4 +1,4 @@
--module(key_value_sup).
+-module(dump_sup).
 -behaviour(supervisor).
 -export([start_link/2,init/1,stop/0]).
 start_link(ID, Size) -> 

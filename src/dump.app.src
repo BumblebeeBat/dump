@@ -1,4 +1,4 @@
-{application, key_value,
+{application, dump,
  [
   {description, ""},
   {vsn, "1"},
@@ -6,7 +6,7 @@
   {applications, [
                   kernel,
                   stdlib
-                 ]},
-  {mod, { key_value_app, []}},
-  {env, []}
+                 ]}
+  %{mod, { dump_app, []}},
+  %{env, []}
  ]}.

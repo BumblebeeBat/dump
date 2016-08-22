@@ -1,4 +1,4 @@
--module(key_value_app).
+-module(dump_app).
 
 -behaviour(application).
 
@@ -9,10 +9,10 @@
 %% Application callbacks
 %% ===================================================================
 
-start(normal, []) ->
+start(normal, [ID]) ->
     io:fwrite("ok\n"),
     Size = 5,
-    key_value_sup:start_link(kv, Size).
+    dump_sup:start_link(ID, Size).
 
 stop(_State) ->
     ok.
