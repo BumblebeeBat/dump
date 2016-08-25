@@ -29,7 +29,8 @@ handle_call(word, _From, X) ->
 handle_call({highest, ID}, _From, X) ->
     {Word} = X,
     H = file_manager:size(ID),
-    {reply, H div Word, X};
+    %H = dump_bits:top(ID),
+    {reply, H, X};
 handle_call(Y, _From, X) -> 
     io:fwrite("fail\n"),
     io:fwrite(Y),
