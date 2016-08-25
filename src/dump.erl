@@ -30,8 +30,9 @@ handle_call({highest, ID}, _From, X) ->
     {Word} = X,
     H = file_manager:size(ID),
     {reply, H div Word, X};
-handle_call(_, _From, X) -> 
+handle_call(Y, _From, X) -> 
     io:fwrite("fail\n"),
+    io:fwrite(Y),
     {reply, X, X}.
 
 delete(X, ID) -> gen_server:cast({global, ID}, {delete, X, ID}).
