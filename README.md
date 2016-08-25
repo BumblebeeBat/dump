@@ -14,4 +14,4 @@ This is a very simple harddrive database. It only stores one size of block. here
 6>
 ```
 
-it uses the atom ```kv``` so that you can start more than one dump, and give them different names.
+it uses the atom ```database003``` so that you can start more than one dump, and give them different names.

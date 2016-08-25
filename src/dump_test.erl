@@ -1,4 +1,4 @@
--module(test).
+-module(dump_test).
 -export([test/0]).
 test() ->
     dump_sup:start_link(kv, 5),
