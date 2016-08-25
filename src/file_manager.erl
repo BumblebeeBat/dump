@@ -1,6 +1,6 @@
 -module(file_manager).
 -behaviour(gen_server).
--export([start_link/2,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, write/3,read/3,size/1]).
+-export([start_link/2,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, write/3,read/3,size/1,grow/1]).
 init({File}) -> 
     {ok, F} = file:open(File, [write, read, raw, binary]),
     {ok, F}.
@@ -33,3 +33,6 @@ size(ID) ->
     I = atom_to_list(ID),
     A = list_to_atom(I++"_file"),
     gen_server:call({global, A}, size).
+grow(ID) ->
+    S = size(ID),
+    write(ID, S, <<0:80000>>).
