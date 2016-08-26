@@ -7,7 +7,11 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast({delete, Height}, {Top, ID}) -> 
-    flip_bit(ID, Height),
+    G = get_internal(Height, ID),
+    case G of 
+	1 -> flip_bit(ID, Height);
+	0 -> ok
+    end,
     {noreply, {min(Top,Height), ID}};
 handle_cast({write}, {Top, ID}) -> 
     flip_bit(ID, Top),
@@ -15,8 +19,19 @@ handle_cast({write}, {Top, ID}) ->
     {noreply, {NewTop, ID}};
 handle_cast(_, X) -> {noreply, X}.
 handle_call({get, N, ID}, _From, {Top, File}) -> 
+    G = get_internal(N, ID),
+    {reply, G, {Top, File}};
+handle_call(top, _From, {Top, File}) -> 
+    {reply, Top, {Top, File}};
+handle_call(_, _From, X) -> {reply, X, X}.
+append(ID, Data) ->
+    N = file_manager:size(ID),
+    %we should probably be using A2 here.
+    %A2 = list_to_atom(L++"_bits"),
+    file_manager:write(ID, N, Data).
+get_internal(N, ID) ->
     ND8 = N div 8,
-    G = case file_manager:read(ID, ND8, 1) of
+    case file_manager:read(ID, ND8, 1) of
 	    eof -> 0;
 	    {ok, B} -> 
 		<<Num:8>> = B,
@@ -27,16 +42,7 @@ handle_call({get, N, ID}, _From, {Top, File}) ->
 		    0 -> 0;
 		    _ -> 1
 		end
-	end,
-    {reply, G, {Top, File}};
-handle_call(top, _From, {Top, File}) -> 
-    {reply, Top, {Top, File}};
-handle_call(_, _From, X) -> {reply, X, X}.
-append(ID, Data) ->
-    N = file_manager:size(ID),
-    %we should probably be using A2 here.
-    %A2 = list_to_atom(L++"_bits"),
-    file_manager:write(ID, N, Data).
+	end.    
 get(ID, N) ->
     L = atom_to_list(ID),
     A2 = list_to_atom(L++"_bits"),
@@ -44,12 +50,7 @@ get(ID, N) ->
 delete(ID, Height) -> 
     L = atom_to_list(ID),
     A2 = list_to_atom(L++"_bits"),
-    G = get(ID, Height),
-    case G of 
-	1 ->
-	    gen_server:cast(A2, {delete, Height});
-	0 -> ok
-    end.
+    gen_server:cast(A2, {delete, Height}).
 write(ID) -> 
     L = atom_to_list(ID),
     A2 = list_to_atom(L++"_bits"),
