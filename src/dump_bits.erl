@@ -34,7 +34,7 @@ top(ID) ->
     gen_server:call(A2, top).
 top_internal(ID) -> top2(ID, 0).
 top2(ID, N) ->
-    case file_manager:read(ID, N, 1000) of
+    case file_manager:read(ID, N*1000, 1000) of
 	eof ->
 	    append(ID, <<0:80000>>),
 	    top2(ID, N);

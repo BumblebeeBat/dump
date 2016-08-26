@@ -17,9 +17,11 @@ test() ->
     V3 = dump:get(A3, ID),
     dump:delete(A2, ID),
     A2 = dump:put(V1, ID),
-    test_times(10000, ID),
+    test_times(100000, ID),
     dump:highest(ID).
 test_times(0, _) -> success;
 test_times(N, ID) -> 
+    io:fwrite(integer_to_list(N)),
+    io:fwrite("\n"),
     dump:put(<<0,0,0,0,0>>, ID),
     test_times(N-1, ID).
