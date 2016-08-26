@@ -1,6 +1,6 @@
 -module(dump_bits).
 -behaviour(gen_server).
--export([start_link/1,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, test/0,write/1,top/1,delete/2]).
+-export([start_link/1,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, write/1,top/1,delete/2,get/2]).
 init({ID}) -> {ok, {top_internal(ID), ID}}.
 start_link(Id) -> gen_server:start_link({local, Id}, ?MODULE, {Id}, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
@@ -14,16 +14,42 @@ handle_cast({write}, {Top, ID}) ->
     NewTop = top2(ID, 0),
     {noreply, {NewTop, ID}};
 handle_cast(_, X) -> {noreply, X}.
+handle_call({get, N, ID}, _From, {Top, File}) -> 
+    ND8 = N div 8,
+    G = case file_manager:read(ID, ND8, 1) of
+	    eof -> 0;
+	    {ok, B} -> 
+		<<Num:8>> = B,
+		X = 7 - (N rem 8),
+		Y = round(math:pow(2, X)),
+		NewNum = Num band Y,
+		case NewNum of
+		    0 -> 0;
+		    _ -> 1
+		end
+	end,
+    {reply, G, {Top, File}};
 handle_call(top, _From, {Top, File}) -> 
     {reply, Top, {Top, File}};
 handle_call(_, _From, X) -> {reply, X, X}.
 append(ID, Data) ->
     N = file_manager:size(ID),
+    %we should probably be using A2 here.
+    %A2 = list_to_atom(L++"_bits"),
     file_manager:write(ID, N, Data).
+get(ID, N) ->
+    L = atom_to_list(ID),
+    A2 = list_to_atom(L++"_bits"),
+    gen_server:call(A2, {get, N, A2}).
 delete(ID, Height) -> 
     L = atom_to_list(ID),
     A2 = list_to_atom(L++"_bits"),
-    gen_server:cast(A2, {delete, Height}).
+    G = get(ID, Height),
+    case G of 
+	1 ->
+	    gen_server:cast(A2, {delete, Height});
+	0 -> ok
+    end.
 write(ID) -> 
     L = atom_to_list(ID),
     A2 = list_to_atom(L++"_bits"),
@@ -54,9 +80,6 @@ top3(<<15:4, T/bitstring>>, N) -> top3(T, N+4);
 top3(<<3:2, T/bitstring>>, N) -> top3(T, N+2);
 top3(<<1:1, T/bitstring>>, N) -> top3(T, N+1).
 flip_bit(ID, Number) ->
-    io:fwrite("delete number "),
-    io:fwrite(integer_to_list(Number)),
-    io:fwrite("\n"),
     ND8 = Number div 8,
     case file_manager:read(ID, ND8, 1) of
 	eof ->
@@ -69,5 +92,4 @@ flip_bit(ID, Number) ->
 	    NewByte = <<NewNum:8>>,
 	    file_manager:write(ID, ND8, NewByte)
     end.
-test() ->
-    ok.
+

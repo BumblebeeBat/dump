@@ -44,3 +44,4 @@ put(Data, ID) ->
 get(X, ID) -> gen_server:call({global, ID}, {read, X, ID}).
 word(ID) -> gen_server:call({global, ID}, word).
 highest(ID) -> gen_server:call({global, ID}, {highest, ID}).
+

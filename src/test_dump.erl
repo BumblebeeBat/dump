@@ -21,7 +21,5 @@ test() ->
     test_times(Times, ID).
 test_times(0, _) -> success;
 test_times(N, ID) -> 
-    io:fwrite(integer_to_list(N)),
-    io:fwrite("\n"),
     dump:put(<<0,0,0,0,0>>, ID),
     test_times(N-1, ID).
