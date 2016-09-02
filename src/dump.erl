@@ -12,6 +12,7 @@ handle_cast({delete, Location, Id}, X) ->
 handle_cast(_, X) -> {noreply, X}.
 handle_call({write, Data, ID}, _From, X) ->
     {Word} = X,
+    Word = size(Data),
     Top = dump_bits:top(ID),
     file_manager:write(ID, Top*Word, Data),
     dump_bits:write(ID),
@@ -31,8 +32,8 @@ handle_call({highest, ID}, _From, X) ->
     {reply, H, X}.
 delete(X, ID) -> gen_server:cast({global, ID}, {delete, X, ID}).
 put(Data, ID) -> 
-    Word = size(Data),
-    Word = word(ID),
+    %Word = size(Data),
+    %Word = word(ID),
     gen_server:call({global, ID}, {write, Data, ID}).
 get(X, ID) -> gen_server:call({global, ID}, {read, X, ID}).
 word(ID) -> gen_server:call({global, ID}, word).

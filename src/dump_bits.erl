@@ -25,7 +25,7 @@ handle_cast({delete, Height}, {Bits, Top, ID}) ->
     {noreply, {NewBits, min(Top,Height), ID}};
 handle_cast(write, {Bits, Top, ID}) -> 
     NewBits = flip_bit1(Bits, Top),
-    {NewNewBits, NewTop} = top2(NewBits, Top),
+    {NewNewBits, NewTop} = top2(NewBits, Top+1),
     {noreply, {NewNewBits, NewTop, ID}};
 handle_cast(_, X) -> {noreply, X}.
 handle_call({get, N, ID}, _From, {Bits, Top, ID}) -> 
