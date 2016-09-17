@@ -1,7 +1,7 @@
 -module(dump_sup).
 -behaviour(supervisor).
 -export([start_link/2,init/1,stop/0]).
-start_link(ID, Size) -> 
+start_link(ID, Size) -> %Mode is ram or hd
     L = atom_to_list(ID),
     A = list_to_atom(L ++ "sup"),
     supervisor:start_link({global, A}, ?MODULE, [ID, Size]).
