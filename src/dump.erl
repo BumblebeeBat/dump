@@ -28,7 +28,7 @@ handle_call(word, _From, X) ->
     {Word} = X,
     {reply, Word, X};
 handle_call({highest, ID}, _From, X) ->
-    H = file_manager:size(ID),
+    H = file_manager:bytes(ID),
     {reply, H, X}.
 delete(X, ID) -> gen_server:cast({global, ID}, {delete, X, ID}).
 put(Data, ID) -> 

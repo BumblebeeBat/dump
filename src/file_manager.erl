@@ -59,5 +59,5 @@ bytes(ID) ->
     A = list_to_atom(I++"_file"),
     gen_server:call({global, A}, size).
 grow(ID) ->
-    S = file_manager:size(ID),
+    S = bytes(ID),
     write(ID, S, <<0:80000>>).
