@@ -9,8 +9,8 @@ init({File}) ->
 	    "" -> empty_tuple();
 	    X -> X
 	end,
-    {Bits, Top} = top2(Z, 0),
-    {ok, {Bits, Top, File}}.
+    Top = top2(Z, 0),
+    {ok, {Z, Top, File}}.
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 start_link(Id, File) -> gen_server:start_link({global, Id}, ?MODULE, {File}, []).
 terminate(_, {Bits, _Top, File}) -> 
