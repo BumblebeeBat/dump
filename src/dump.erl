@@ -7,15 +7,15 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast({delete, Location, Id}, X) ->
-    dump_bits:delete(Id, Location),
+    bits:delete(Id, Location),
     {noreply, X};
 handle_cast(_, X) -> {noreply, X}.
 handle_call({write, Data, ID}, _From, X) ->
     {Word} = X,
     Word = size(Data),
-    Top = dump_bits:top(ID),
+    Top = bits:top(ID),
     file_manager:write(ID, Top*Word, Data),
-    dump_bits:write(ID),
+    bits:write(ID),
     {reply, Top, X};
 handle_call({read, Location, ID}, _From, X) ->
     {Word} = X,

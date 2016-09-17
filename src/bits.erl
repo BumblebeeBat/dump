@@ -99,7 +99,7 @@ get_internal(N, Bits) ->
     <<_:A, X:1, _/bitstring>> = F,
     X.
 top2(Bits, N) ->
-    {A,C,D,E,F} = get_common(N, Bits),
+    {A,_,_,_,F} = get_common(N, Bits),
     <<_:A, X/bitstring>> = F,
     case top3(X, 0) of
 	{more, M} -> top2(Bits, N+M);
