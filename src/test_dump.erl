@@ -22,6 +22,9 @@ test_main(ID, Size) ->
     V1 = <<1:(8*Size)>>,
     V2 = <<2:(8*Size)>>,
     V3 = <<3:(8*Size)>>,
+    A1 = 0,
+    A2 = 1,
+    A3 = 2,
     A1 = dump:put(V1, ID),
     V1 = dump:get(A1, ID),
     A2 = dump:put(V2, ID),
@@ -32,10 +35,12 @@ test_main(ID, Size) ->
     V2 = dump:get(A2, ID),
     V3 = dump:get(A3, ID),
     dump:delete(A1, ID),
-    A1 = dump:put(V1, ID),
+    A1 = dump:put(V2, ID),
     Times = 1000,
     put_times(Times, Size, ID),
-    get_times(Times, Size, ID).
+    get_times(Times, Size, ID),
+    V2 = dump:get(A1, ID).
+   
 put_times(0, _, _) -> success;
 put_times(N, Size, ID) -> 
     dump:fast_put(<<1:(8*Size)>>, ID),

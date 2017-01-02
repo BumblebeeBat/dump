@@ -13,8 +13,7 @@ read(F) ->
 -record(d, {a = "", b = "" }).
 test() ->
     X = #d{a=[1, 2, <<"abc">>, []], b = <<1,2,3,200>> },
-    File = constants:database(),
-    %File = "database.db",
+    File = "database.db",
     save(File, X),
     X = read(File),
     success.
