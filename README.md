@@ -3,7 +3,7 @@ This is a very simple harddrive database. It only stores one size of block. here
 
 ```
 1> ID = database003,
-2> dump_sup:start_link(ID, 5).
+2> dump_sup:start_link(ID, 5, 10000, ram).
 {ok,<0.37.0>}
 3> V = <<3,2,1,5,6>>.
 <<3,2,1,5,6>>
