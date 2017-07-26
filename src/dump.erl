@@ -26,10 +26,15 @@ handle_call({write, Data, ID}, _From, X) ->
     {reply, Top, X};
 handle_call({read, Location, ID}, _From, X) ->
     {Word} = X,
-    Z = case file_manager:read(ID, Location*Word, Word) of
-	{ok, A} -> A;
-	eof -> <<0:(Word*8)>>
-    end,
+    Z = case bits:get(ID, Location) of
+            true ->
+                case file_manager:read(ID, Location*Word, Word) of
+                    {ok, A} -> A;
+                    eof -> <<0:(Word*8)>>
+                end;
+            false ->
+                <<0:(Word*8)>>
+        end,
     {reply, Z, X};
 handle_call(word, _From, X) ->
     {Word} = X,
