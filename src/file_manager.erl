@@ -9,6 +9,7 @@ init({Name, Size, ram}) ->
     {ok, {Z, Name, ram}};
 init({Name, _, hd}) -> 
     {{ok, F}, _} = {file:open(Name, [write, read, raw, binary]), Name},
+    %{ok, F} = file:open(Name, [write, read, raw, binary]),
     {ok, {F, Name}}.
 start_link(File, Id, Size, Mode) -> gen_server:start_link({global, Id}, ?MODULE, {File, Size, Mode}, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
