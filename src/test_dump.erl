@@ -43,7 +43,7 @@ test_main(ID, Size) ->
    
 put_times(0, _, _) -> success;
 put_times(N, Size, ID) -> 
-    dump:fast_put(<<1:(8*Size)>>, ID),
+    dump:put(<<1:(8*Size)>>, ID),
     put_times(N-1, Size, ID).
 get_times(2, _, _) -> success;
 get_times(N, Size, ID) ->

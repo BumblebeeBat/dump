@@ -1,15 +1,15 @@
 -module(dump).
 -behaviour(gen_server).
--export([start_link/2,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, delete/2,fast_put/2,put/2,get/2,word/1,highest/1]).
+-export([start_link/2,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, delete/2,put/2,get/2,word/1,highest/1]).
 init({WordSize}) -> {ok, {WordSize}}.
 start_link(WordSize, Id) -> gen_server:start_link({global, Id}, ?MODULE, {WordSize}, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
-handle_cast({delete, Location, Id}, X) ->
-    bits:delete(Id, Location),
-    {noreply, X};
 handle_cast(_, X) -> {noreply, X}.
+handle_call({delete, Location, Id}, _From, X) ->
+    bits:delete(Id, Location),
+    {reply, ok, X};
 handle_call({fast_write, Data, ID}, _From, X) ->
     {Word} = X,
     Word = size(Data),
@@ -28,8 +28,10 @@ handle_call({read, Location, ID}, _From, X) ->
     {Word} = X,
     Z = case file_manager:read(ID, Location*Word, Word) of
 	    {ok, A} -> A;
-	    eof -> <<0:(Word*8)>>
-		       end,
+	    eof -> 
+		<<0:(Word*8)>>
+	end,
+
     %Z = case bits:get(ID, Location) of
     %        true ->
     %            case file_manager:read(ID, Location*Word, Word) of
@@ -47,7 +49,7 @@ handle_call({highest, ID}, _From, X) ->
     {Word} = X,
     A = bits:highest(ID),
     {reply, A*Word, X}.
-delete(X, ID) -> gen_server:cast({global, ID}, {delete, X, ID}).
+delete(X, ID) -> gen_server:call({global, ID}, {delete, X, ID}).
 fast_put(Data, ID) -> 
     gen_server:call({global, ID}, {fast_write, Data, ID}).
 put(Data, ID) -> 

@@ -1,6 +1,6 @@
 -module(file_manager).
 -behaviour(gen_server).
--export([start_link/4,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, write/3,read/3,write_ram/3,fast_write/3]).
+-export([start_link/4,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, write/3,read/3,write_ram/3]).
 init({Name, Size, ram}) ->
     Z = case db:read(Name) of
 	    "" -> hipe_bifs:bytearray(Size, 0);
@@ -20,7 +20,8 @@ terminate(_, {F, _}) ->
     file:close(F),
     io:format("file died!"), ok.
 handle_info(_, X) -> {noreply, X}.
-handle_cast({fast_write, Location, Data}, {Bin, Name, ram}) -> 
+handle_cast(_, X) -> {noreply, X}.
+handle_call({fast_write, Location, Data}, _From, {Bin, Name, ram}) -> 
     S = size(Data),
     BS = size(Bin),
     if
@@ -28,23 +29,19 @@ handle_cast({fast_write, Location, Data}, {Bin, Name, ram}) ->
 	true -> 
 	    file_manager:write_ram(Location, Data, Bin)
     end,
-    {noreply, {Bin, Name, ram}};
-handle_cast({write, Location, Data}, {Bin, Name, ram}) -> 
+    {reply, ok, {Bin, Name, ram}};
+handle_call({write, Location, Data}, _From, {Bin, Name, ram}) -> 
     S = size(Data),
     BS = size(Bin),
-    if
-	%Location+S > BS -> Bin;
-	BS >= Location+S -> 
-	    spawn(file_manager, write_ram, [Location, Data, Bin])
-    end,
-    {noreply, {Bin, Name, ram}};
-handle_cast({fast_write, Location, Data}, {X, N}) -> 
+    true = BS >= Location+S,
+    spawn(file_manager, write_ram, [Location, Data, Bin]),
+    {reply, ok, {Bin, Name, ram}};
+handle_call({fast_write, Location, Data}, _From, {X, N}) -> 
     file:pwrite(X, Location, Data),
-    {noreply, {X, N}};
-handle_cast({write, Location, Data}, {X, N}) -> 
+    {reply, ok, {X, N}};
+handle_call({write, Location, Data}, _From, {X, N}) -> 
     file:pwrite(X, Location, Data),
-    {noreply, {X, N}}.
-%handle_cast(_, X) -> {noreply, X}.
+    {reply, ok, {X, N}};
 handle_call({read, Location, Amount}, _From, {X, Name, ram}) -> 
     A = if
 	Location + Amount > size(X) ->
@@ -57,16 +54,16 @@ handle_call({read, Location, Amount}, _From, {X, Name, ram}) ->
     end,
     {reply, A, {X, Name, ram}};
 handle_call({read, Location, Amount}, _From, {X, N}) -> 
-    {reply, file:pread(X, Location, Amount), {X, N}}.
-%handle_call(_, _From, X) -> {reply, X, X}.
+    {reply, file:pread(X, Location, Amount), {X, N}};
+handle_call(_, _From, X) -> {reply, X, X}.
 fast_write(ID, Location, Data) ->
     I = atom_to_list(ID),
     A = list_to_atom(I++"_file"),
-    gen_server:cast({global, A}, {fast_write, Location, Data}).
+    gen_server:call({global, A}, {fast_write, Location, Data}).
 write(ID, Location, Data) ->
     I = atom_to_list(ID),
     A = list_to_atom(I++"_file"),
-    gen_server:cast({global, A}, {write, Location, Data}).
+    gen_server:call({global, A}, {write, Location, Data}).
 read(ID, Location, Amount) ->
     I = atom_to_list(ID),
     A = list_to_atom(I++"_file"),

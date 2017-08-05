@@ -16,15 +16,15 @@ terminate(_, {Bits, _Top, _Highest, File, _Size}) ->
     db:save(File, Bits),
     io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
-handle_cast({delete, Height}, {Bits, Top, Highest, File, Size})-> 
+handle_cast(_, X) -> {noreply, X}.
+handle_call({delete, Height}, _From, {Bits, Top, Highest, File, Size})-> 
     NewBits = hipe_bifs:bitarray_update(Bits, Height, false),
     NewHighest = highest2(NewBits, Highest),
-    {noreply, {NewBits, min(Top,Height), NewHighest, File, Size}};
-handle_cast(write, {Bits, Top, H, File, Size}) -> 
+    {reply, ok, {NewBits, min(Top,Height), NewHighest, File, Size}};
+handle_call(write, _From, {Bits, Top, H, File, Size}) -> 
     NewBits = hipe_bifs:bitarray_update(Bits, Top, true),
     NewTop = top2(NewBits, Top+1),
-    {noreply, {NewBits, NewTop, max(H, Top), File, Size}};
-handle_cast(_, X) -> {noreply, X}.
+    {reply, ok, {NewBits, NewTop, max(H, Top), File, Size}};
 handle_call({get, N}, _From, {Bits, Top, H, File, Size}) -> 
     G = internal_get(Bits, N),
     {reply, G, {Bits, Top, H, File, Size}};
@@ -36,8 +36,10 @@ handle_call(_, _From, X) -> {reply, X, X}.
 ider(ID) -> list_to_atom(atom_to_list(ID)++"_bits").
 get(ID, N) -> gen_server:call({global, ider(ID)}, {get, N}).
 delete(ID, Height) -> 
-    gen_server:cast({global, ider(ID)}, {delete, Height}).
-write(ID) -> gen_server:cast({global, ider(ID)}, write).
+    gen_server:call({global, ider(ID)}, {delete, Height}).
+write(ID) -> 
+    gen_server:call({global, ider(ID)}, write).
+    
 highest(ID) -> gen_server:call({global, ider(ID)}, highest).
 top(ID) -> gen_server:call({global, ider(ID)}, top).
 top2(Bits, N) ->
