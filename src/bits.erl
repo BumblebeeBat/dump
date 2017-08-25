@@ -6,8 +6,8 @@ init({File, Size}) ->
 	case db:read(File) of
 	    "" -> 
 		X = hipe_bifs:bitarray(Size, false),
-		{X, 0, 0};
-	    X ->  {X, top2(X, 0), highest2(X, Size-1)}
+		{X, 1, 1};
+	    X ->  {X, top2(X, 1), highest2(X, Size-1)}
 	end,
     {ok, {Z, Top, Highest, File, Size}}.
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
@@ -51,7 +51,7 @@ top2(Bits, N) ->
 internal_get(Bits, N) ->
     hipe_bifs:bitarray_sub(Bits, N).
     
-highest2(_, 0) -> 0;
+highest2(_, 1) -> 1;
 highest2(Bits, N) -> 
     case internal_get(Bits, N) of
 	true -> N;	    

@@ -54,7 +54,9 @@ fast_put(Data, ID) ->
     gen_server:call({global, ID}, {fast_write, Data, ID}).
 put(Data, ID) -> 
     gen_server:call({global, ID}, {write, Data, ID}).
-get(X, ID) -> gen_server:call({global, ID}, {read, X, ID}).
+get(X, ID) -> 
+    true = X > 0,
+    gen_server:call({global, ID}, {read, X, ID}).
 word(ID) -> gen_server:call({global, ID}, word).
 highest(ID) -> gen_server:call({global, ID}, {highest, ID}).
 

@@ -22,9 +22,9 @@ test_main(ID, Size) ->
     V1 = <<1:(8*Size)>>,
     V2 = <<2:(8*Size)>>,
     V3 = <<3:(8*Size)>>,
-    A1 = 0,
-    A2 = 1,
-    A3 = 2,
+    A1 = 1,
+    A2 = 2,
+    A3 = 3,
     A1 = dump:put(V1, ID),
     V1 = dump:get(A1, ID),
     A2 = dump:put(V2, ID),
@@ -45,7 +45,7 @@ put_times(0, _, _) -> success;
 put_times(N, Size, ID) -> 
     dump:put(<<1:(8*Size)>>, ID),
     put_times(N-1, Size, ID).
-get_times(2, _, _) -> success;
+get_times(3, _, _) -> success;
 get_times(N, Size, ID) ->
     SS = 8*Size, 
     <<1:SS>> = dump:get(N, ID),
