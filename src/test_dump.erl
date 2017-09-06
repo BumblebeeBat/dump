@@ -39,7 +39,10 @@ test_main(ID, Size) ->
     Times = 1000,
     put_times(Times, Size, ID),
     get_times(Times, Size, ID),
-    V2 = dump:get(A1, ID).
+    V2 = dump:get(A1, ID),
+    dump:update(A1, V1, ID),
+    V1 = dump:get(A1, ID).
+    
    
 put_times(0, _, _) -> success;
 put_times(N, Size, ID) -> 
