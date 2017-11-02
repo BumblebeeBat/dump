@@ -2,6 +2,7 @@
 -behaviour(gen_server).
 -export([start_link/3,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, write/1,top/1,highest/1,delete/2,get/2]).
 init({File, Size}) ->
+    process_flag(trap_exit, true),
     {Z, Top, Highest} = 
 	case db:read(File) of
 	    "" -> 
