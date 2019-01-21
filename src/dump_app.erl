@@ -11,7 +11,7 @@
 start(_StartType, _StartArgs) ->
     %Amount = 1000000,
     Amount = 1000,
-    dump_sup:start_link(dump, 32, Amount, hd).
+    dump_sup:start_link(dump, 32, Amount, hd, "").
 
 stop(_State) ->
     ok.

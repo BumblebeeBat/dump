@@ -3,7 +3,7 @@
 %timer:tc(test_dump, test, []).
 %{5457078,success}
 test_init(ID, Size) ->
-    dump_sup:start_link(ID, Size, 100002, ram).
+    dump_sup:start_link(ID, Size, 100002, ram, "").
 
 testlta() ->
     %41077 = 0.04 seconds
