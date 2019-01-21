@@ -1,6 +1,6 @@
 -module(dump_sup).
 -behaviour(supervisor).
--export([start_link/4,init/1,stop/0]).
+-export([start_link/5,init/1,stop/0]).
 start_link(ID, Size, Amount, Mode) -> %Mode is ram or hd
     L = atom_to_list(ID),
     A = list_to_atom(L ++ "sup"),
