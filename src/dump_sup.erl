@@ -4,15 +4,15 @@
 start_link(ID, Size, Amount, Mode) -> %Mode is ram or hd
     L = atom_to_list(ID),
     A = list_to_atom(L ++ "sup"),
-    supervisor:start_link({global, A}, ?MODULE, [ID, Size, Amount, Mode]).
+    supervisor:start_link({global, A}, ?MODULE, [ID, Size, Amount, Mode, ""]).
 stop() -> halt().
 
-init([ID, Size, Amount, Mode]) ->
+init([ID, Size, Amount, Mode, Location]) ->
     L = atom_to_list(ID),
-    L1 = "data/"++L++".db",
+    L1 = Location ++ "data/"++L++".db",
     A1 = ID,
     A2 = dump_ids:bits(ID),
-    L2 = "data/"++L++"_bits.db",
+    L2 = Location ++ "data/"++L++"_bits.db",
     A3 = dump_ids:file_manager(ID),
     Children = [{A1, {dump, start_link, [Size, A1]}, permanent, 50000, worker, [dump]},
 		{A3, {file_manager, start_link, [L1, A3, Size*Amount, Mode]}, permanent, 5000, worker, [file_manager]},
