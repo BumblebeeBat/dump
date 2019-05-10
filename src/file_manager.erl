@@ -21,7 +21,7 @@ terminate(_, {F, _}) ->
     io:format("file died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
-handle_call({fast_write, Location, Data}, _From, {Bin, Name, ram}) -> 
+handle_call({write, Location, Data}, _From, {Bin, Name, ram}) -> 
     S = size(Data),
     BS = size(Bin),
     if
@@ -30,7 +30,7 @@ handle_call({fast_write, Location, Data}, _From, {Bin, Name, ram}) ->
 	    file_manager:write_ram(Location, Data, Bin)
     end,
     {reply, ok, {Bin, Name, ram}};
-handle_call({write, Location, Data}, _From, {Bin, Name, ram}) -> 
+handle_call({bad_write, Location, Data}, _From, {Bin, Name, ram}) -> 
     S = size(Data),
     BS = size(Bin),
     true = BS >= Location+S,
@@ -59,7 +59,8 @@ handle_call(_, _From, X) -> {reply, X, X}.
 fast_write(ID, Location, Data) ->
     I = atom_to_list(ID),
     A = list_to_atom(I++"_file"),
-    gen_server:call({global, A}, {fast_write, Location, Data}).
+    %gen_server:call({global, A}, {fast_write, Location, Data}).
+    gen_server:call({global, A}, {write, Location, Data}).
 write(ID, Location, Data) ->
     I = atom_to_list(ID),
     A = list_to_atom(I++"_file"),
