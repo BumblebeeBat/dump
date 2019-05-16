@@ -3,7 +3,7 @@
 %timer:tc(test_dump, test, []).
 %{5457078,success}
 test_init(ID, Size) ->
-    dump_sup:start_link(ID, Size, 100002, ram, "").
+    dump_sup:start_link(ID, Size, 100002, hd, "").
 
 testlta() ->
     %41077 = 0.04 seconds
@@ -35,24 +35,28 @@ test_main(ID, Size) ->
     V2 = dump:get(A2, ID),
     V3 = dump:get(A3, ID),
     dump:delete(A1, ID),
-    A1 = dump:put(V2, ID),
+    %A1 = dump:put(V2, ID),
+    A4 = dump:put(V2, ID),
     Times = 1000,
-    put_times(Times, Size, ID),
-    get_times(Times, Size, ID),
-    V2 = dump:get(A1, ID),
-    dump:update(A1, V1, ID),
-    V1 = dump:get(A1, ID).
+    Locs = put_times(Times, Size, ID),
+    get_times(Locs, Size, ID),
+    %V2 = dump:get(A1, ID),
+    %dump:update(A1, V1, ID),
+    %V1 = dump:get(A1, ID).
+    V2 = dump:get(A4, ID),
+    dump:update(A4, V1, ID),
+    V1 = dump:get(A4, ID).
     
    
-put_times(0, _, _) -> success;
+put_times(0, _, _) -> [];
 put_times(N, Size, ID) -> 
-    dump:put(<<1:(8*Size)>>, ID),
-    put_times(N-1, Size, ID).
-get_times(3, _, _) -> success;
-get_times(N, Size, ID) ->
+    [dump:put(<<1:(8*Size)>>, ID)|
+     put_times(N-1, Size, ID)].
+get_times([], _, _) -> success;
+get_times([H|T], Size, ID) ->
     SS = 8*Size, 
-    <<1:SS>> = dump:get(N, ID),
-    get_times(N-1, Size, ID).
+    <<1:SS>> = dump:get(H, ID),
+    get_times(T, Size, ID).
 
 test2() ->
     ID = test2,

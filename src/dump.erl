@@ -1,36 +1,66 @@
 -module(dump).
 -behaviour(gen_server).
--export([start_link/2,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, delete/2,put/2,get/2,word/1,highest/1,update/3]).
-init({WordSize}) -> {ok, {WordSize}}.
-start_link(WordSize, Id) -> gen_server:start_link({global, Id}, ?MODULE, {WordSize}, []).
+-export([start_link/3,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, delete/2,put/2,get/2,word/1,highest/1,update/3]).
+init({Mode, WordSize, ID}) -> 
+    case Mode of
+        ram -> 
+            case ets:info(ID) of
+                undefined ->
+                    io:fwrite("make table "),
+                    io:fwrite(ID),
+                    io:fwrite("\n"),
+                    ets:new(ID, [set, named_table, {write_concurrency, true}]);%consider adding 'compressed' to save space.
+                _ -> ok
+            end;
+        hd -> ok
+    end,
+    {ok, {Mode, WordSize}}.
+start_link(WordSize, Id, Mode) -> 
+    X = case Mode of
+             ram -> {ram, 1, Id};
+             hd -> {hd, WordSize, Id}
+         end,
+    gen_server:start_link({global, Id}, ?MODULE, X, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
-handle_call({delete, Location, Id}, _From, X) ->
+handle_call({delete, Location, Id}, _From, X = {hd, _}) ->
     bits:delete(Id, Location),
     {reply, ok, X};
-handle_call({fast_write, Data, ID}, _From, X) ->
-    {Word} = X,
-    Word = size(Data),
-    Top = bits:top(ID),
-    file_manager:fast_write(ID, Top*Word, Data),
-    bits:write(ID),
-    {reply, Top, X};
-handle_call({update, Location, Data, ID}, _From, X) ->
-    {Word} = X,
+handle_call({delete, Location, Id}, _From, X = {ram, _}) ->
+    ets:delete(Id, Location),
+    {reply, ok, X};
+handle_call({update, Location, Data, ID}, _From, X = {ram, _}) ->
+    ets:insert(ID, [{Location, Data}]),
+    {reply, ok, X};
+handle_call({update, Location, Data, ID}, _From, X = {hd, _}) ->
+    %{Word} = X,
     Word = size(Data),
     file_manager:write(ID, Location*Word, Data),
     {reply, ok, X};
-handle_call({write, Data, ID}, _From, X) ->
-    {Word} = X,
+%handle_call({fast_write, Data, ID}, _From, X = {hd, Word}) ->
+%    Word = size(Data),
+%    Top = bits:top(ID),
+%    file_manager:fast_write(ID, Top*Word, Data),
+%    bits:write(ID),
+%    {reply, Top, X};
+handle_call({write, Data, ID}, _From, {ram, Top}) ->
+    ets:insert(ID, {Top, Data}),
+    {reply, Top, {ram, Top+1}};
+handle_call({write, Data, ID}, _From, X = {hd, Word}) ->
     Word = size(Data),
     Top = bits:top(ID),
     file_manager:write(ID, Top*Word, Data),
     bits:write(ID),
     {reply, Top, X};
-handle_call({read, Location, ID}, _From, X) ->
-    {Word} = X,
+handle_call({read, Location, ID}, _From, X = {ram, _}) ->
+    Y = case ets:lookup(ID, Location) of
+            [] -> empty;
+            Z -> element(2, hd(Z))
+        end,
+    {reply, Y, X};
+handle_call({read, Location, ID}, _From, X = {hd, Word}) ->
     Z = case file_manager:read(ID, Location*Word, Word) of
 	    {ok, A} -> A;
 	    eof -> 
@@ -47,16 +77,19 @@ handle_call({read, Location, ID}, _From, X) ->
     %            <<0:(Word*8)>>
     %    end,
     {reply, Z, X};
-handle_call(word, _From, X) ->
-    {Word} = X,
+handle_call(word, _From, X = {ram, _}) ->
+    {reply, 0, X};
+handle_call(word, _From, X = {hd, Word}) ->
     {reply, Word, X};
-handle_call({highest, ID}, _From, X) ->
-    {Word} = X,
+handle_call({highest, _ID}, _From, X = {ram, Top}) ->
+    {reply, Top - 1, X};
+handle_call({highest, ID}, _From, X = {hd, Word}) ->
     A = bits:highest(ID),
     {reply, A*Word, X}.
 delete(X, ID) -> gen_server:call({global, ID}, {delete, X, ID}).
 fast_put(Data, ID) -> 
-    gen_server:call({global, ID}, {fast_write, Data, ID}).
+    %gen_server:call({global, ID}, {fast_write, Data, ID}).
+    gen_server:call({global, ID}, {write, Data, ID}).
 update(Location, Data, ID) -> 
     gen_server:call({global, ID}, {update, Location, Data, ID}).
 put(Data, ID) -> 
