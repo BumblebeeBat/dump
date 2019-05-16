@@ -1,28 +1,31 @@
 -module(dump).
 -behaviour(gen_server).
--export([start_link/3,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, delete/2,put/2,get/2,word/1,highest/1,update/3, put_batch/2]).
-init({Mode, WordSize, ID}) -> 
+-export([start_link/4,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, delete/2,put/2,get/2,word/1,highest/1,update/3, put_batch/2]).
+init({Mode, WordSize, ID, Loc}) -> 
+    process_flag(trap_exit, true),
     case Mode of
         ram -> 
-            case ets:info(ID) of
-                undefined ->
+            case ets:file2tab(Loc) of
+                {ok, ID} -> ok;
+                {error, _} ->
                     io:fwrite("make table "),
                     io:fwrite(ID),
                     io:fwrite("\n"),
-                    ets:new(ID, [set, named_table, {write_concurrency, false}, compressed]);
-                _ -> ok
+                    ets:new(ID, [set, named_table, {write_concurrency, false}, compressed])
             end;
         hd -> ok
     end,
-    {ok, {Mode, WordSize}}.
-start_link(WordSize, Id, Mode) -> 
+    {ok, {Mode, WordSize, ID, Loc}}.
+start_link(WordSize, Id, Mode, Loc) -> 
     X = case Mode of
-             ram -> {ram, 1, Id};
-             hd -> {hd, WordSize, Id}
+             ram -> {ram, 1, Id, Loc};
+             hd -> {hd, WordSize, Id, Loc}
          end,
     gen_server:start_link({global, Id}, ?MODULE, X, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
-terminate(_, _) -> io:format("died!"), ok.
+terminate(_, {_, _, ID, Loc}) -> 
+    ets:tab2file(ID, Loc),
+    io:format("died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
 handle_call({delete, Location, Id}, _From, X = {hd, _}) ->
