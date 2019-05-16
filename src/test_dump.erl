@@ -1,7 +1,16 @@
 -module(test_dump).
--export([test/0, test2/0, test3/0, test4/0, test_main/2, testlta/0]).
+-export([test/0, test2/0, test3/0, test4/0, test_main/2, testlta/0,
+        test_batch/0]).
 %timer:tc(test_dump, test, []).
 %{5457078,success}
+
+test_batch() ->
+    ID = table,
+    dump_sup:start_link(ID, 0, 100002, ram, ""),
+    L = [{1, 1}, {2, 2}, {3, 3}, {4, 4}],
+    dump:put_batch(L, ID),
+    dump:get(3, ID).
+
 test_init(ID, Size) ->
     dump_sup:start_link(ID, Size, 100002, hd, "").
 
