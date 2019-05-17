@@ -47,15 +47,15 @@ terminate(_, {ram, Max, ID, Loc}) ->
 terminate(_, {_, _, _, _}) -> 
     io:format("dump died!"), ok.
 handle_info(_, X) -> {noreply, X}.
-handle_cast({write_batch, L, _ID}, {ram, Top, ID, Loc}) ->
-    %ets:insert(ID, {Top, Data}),
-    ets:insert(ID, L),
-    Top2 = max_second(L, Top),
-    {noreply, {ram, Top2+1, ID, Loc}};
 handle_cast(_, X) -> {noreply, X}.
 handle_call({delete, Location, _Id}, _From, X = {hd, _, Id, _}) ->
     bits:delete(Id, Location),
     {reply, ok, X};
+handle_call({write_batch, L, _ID}, _, {ram, Top, ID, Loc}) ->
+    %ets:insert(ID, {Top, Data}),
+    ets:insert(ID, L),
+    Top2 = max_second(L, Top),
+    {reply, ok, {ram, Top2+1, ID, Loc}};
 handle_call({delete, Location, _}, _From, X = {ram, _, Id, _}) ->
     ets:delete(Id, Location),
     {reply, ok, X};
@@ -136,7 +136,7 @@ update(Location, Data, ID) ->
 put(Data, ID) -> 
     gen_server:call({global, ID}, {write, Data, ID}).
 put_batch(L, ID) -> 
-    gen_server:cast({global, ID}, {write_batch, L, ID}).
+    gen_server:call({global, ID}, {write_batch, L, ID}).
 get(X, ID) -> 
     true = X > 0,
     gen_server:call({global, ID}, {read, X, ID}).
