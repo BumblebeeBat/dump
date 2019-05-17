@@ -22,8 +22,9 @@ init({Mode, WordSize, ID, Loc}) ->
                 end;
             hd -> WordSize
         end,
-    io:fwrite("start dump\n"),
+    io:fwrite("start dump0\n"),
     io:fwrite(integer_to_list(W)),
+    io:fwrite("start dump1\n"),
     io:fwrite("\n"),
     {ok, {Mode, W, ID, Loc}}.
 start_link(WordSize, Id, Mode, Loc) -> 
@@ -40,7 +41,7 @@ loc2rest(Loc) ->
 terminate(_, {ram, Max, ID, Loc}) -> 
     Loc2 = loc2rest(Loc),
     db:save(Loc2, term_to_binary({Max})),
-    ets:tab2file(ID, Loc),
+    ets:tab2file(ID, Loc, [sync, true]),
     io:fwrite(Loc),
     io:fwrite("\n"),
     io:format("ram dump died!"), ok;
