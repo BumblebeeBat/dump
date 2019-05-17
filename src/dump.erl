@@ -41,7 +41,8 @@ save_table(ID, Loc) ->
     io:fwrite("trying to save table "),
     io:fwrite(ID),
     io:fwrite("\n"),
-    case ets:tab2file(ID, Loc, [{sync, true}]) of
+    %case ets:tab2file(ID, Loc, [{sync, true}]) of
+    case ets:tab2file(ID, Loc) of
         ok -> ok;
         {error, R} ->
             io:fwrite(R),
