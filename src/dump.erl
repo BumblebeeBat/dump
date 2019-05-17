@@ -3,20 +3,29 @@
 -export([start_link/4,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, delete/2,put/2,get/2,word/1,highest/1,update/3, put_batch/2]).
 init({Mode, WordSize, ID, Loc}) -> 
     process_flag(trap_exit, true),
-    case Mode of
-        ram -> 
-            case ets:file2tab(Loc) of
-                {ok, ID} -> ok;
-                {error, R} ->
+    W = case Mode of
+            ram -> 
+                case ets:file2tab(Loc) of
+                    {ok, ID} -> ok;
+                    {error, R} ->
                     %io:fwrite(R),
                     %io:fwrite("make table "),
                     %io:fwrite(ID),
                     %io:fwrite("\n"),
-                    ets:new(ID, [set, named_table, {write_concurrency, false}, compressed])
-            end;
-        hd -> ok
-    end,
-    {ok, {Mode, WordSize, ID, Loc}}.
+                        ets:new(ID, [set, named_table, {write_concurrency, false}, compressed])
+                end,
+                case db:read(loc2rest(Loc)) of
+                    "" -> 1;
+                    X -> 
+                        {Y} = binary_to_term(X),
+                        Y
+                end;
+            hd -> WordSize
+        end,
+    io:fwrite("start dump\n"),
+    io:fwrite(integer_to_list(W)),
+    io:fwrite("\n"),
+    {ok, {Mode, W, ID, Loc}}.
 start_link(WordSize, Id, Mode, Loc) -> 
     X = case Mode of
              ram -> {ram, 1, Id, Loc};
@@ -24,7 +33,13 @@ start_link(WordSize, Id, Mode, Loc) ->
          end,
     gen_server:start_link({global, Id}, ?MODULE, X, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
-terminate(_, {ram, _, ID, Loc}) -> 
+loc2rest(Loc) ->
+    {F, _} = lists:split(length(Loc) - 3, Loc),
+    Loc2 = F ++ "_rest.db".
+    
+terminate(_, {ram, Max, ID, Loc}) -> 
+    Loc2 = loc2rest(Loc),
+    db:save(Loc2, term_to_binary({Max})),
     ets:tab2file(ID, Loc),
     io:fwrite(Loc),
     io:fwrite("\n"),
