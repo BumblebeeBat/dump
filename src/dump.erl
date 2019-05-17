@@ -8,10 +8,10 @@ init({Mode, WordSize, ID, Loc}) ->
                 case ets:file2tab(Loc) of
                     {ok, ID} -> ok;
                     {error, R} ->
-                    %io:fwrite(R),
-                    %io:fwrite("make table "),
-                    %io:fwrite(ID),
-                    %io:fwrite("\n"),
+                        %io:fwrite(R),
+                        io:fwrite("make table "),
+                        io:fwrite(ID),
+                        io:fwrite("\n"),
                         ets:new(ID, [set, named_table, {write_concurrency, false}, compressed])
                 end,
                 case db:read(loc2rest(Loc)) of
@@ -41,7 +41,7 @@ loc2rest(Loc) ->
 terminate(_, {ram, Max, ID, Loc}) -> 
     Loc2 = loc2rest(Loc),
     db:save(Loc2, term_to_binary({Max})),
-    ets:tab2file(ID, Loc, [sync, true]),
+    ets:tab2file(ID, Loc, [{sync, true}]),
     io:fwrite(Loc),
     io:fwrite("\n"),
     io:format("ram dump died!"), ok;
