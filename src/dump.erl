@@ -37,16 +37,23 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 loc2rest(Loc) ->
     {F, _} = lists:split(length(Loc) - 3, Loc),
     Loc2 = F ++ "_rest.db".
-    
+save_table(ID, Loc) ->
+    case ets:tab2file(ID, Loc, [{sync, true}]) of
+        ok -> ok;
+        {error, R} ->
+            save_table(ID, Loc)
+    end.
 terminate(_, {ram, Max, ID, Loc}) -> 
     Loc2 = loc2rest(Loc),
     db:save(Loc2, term_to_binary({Max})),
-    ets:tab2file(ID, Loc, [{sync, true}]),
+    save_table(ID, Loc),
+    %ets:tab2file(ID, Loc, [{sync, true}]),
     io:fwrite(Loc),
     io:fwrite("\n"),
-    io:format("ram dump died!"), ok;
+    io:format("ram dump died!\n"), 
+    ok;
 terminate(_, {_, _, _, _}) -> 
-    io:format("dump died!"), ok.
+    io:format("dump died!\n"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
 handle_call({delete, Location, _Id}, _From, X = {hd, _, Id, _}) ->
