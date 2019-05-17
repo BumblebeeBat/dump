@@ -7,10 +7,11 @@ init({Mode, WordSize, ID, Loc}) ->
         ram -> 
             case ets:file2tab(Loc) of
                 {ok, ID} -> ok;
-                {error, _} ->
-                    io:fwrite("make table "),
-                    io:fwrite(ID),
-                    io:fwrite("\n"),
+                {error, R} ->
+                    %io:fwrite(R),
+                    %io:fwrite("make table "),
+                    %io:fwrite(ID),
+                    %io:fwrite("\n"),
                     ets:new(ID, [set, named_table, {write_concurrency, false}, compressed])
             end;
         hd -> ok
@@ -25,7 +26,9 @@ start_link(WordSize, Id, Mode, Loc) ->
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, {ram, _, ID, Loc}) -> 
     ets:tab2file(ID, Loc),
-    io:format("dump died!"), ok;
+    io:fwrite(Loc),
+    io:fwrite("\n"),
+    io:format("ram dump died!"), ok;
 terminate(_, {_, _, _, _}) -> 
     io:format("dump died!"), ok.
 handle_info(_, X) -> {noreply, X}.
