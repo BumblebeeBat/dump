@@ -23,9 +23,11 @@ start_link(WordSize, Id, Mode, Loc) ->
          end,
     gen_server:start_link({global, Id}, ?MODULE, X, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
-terminate(_, {_, _, ID, Loc}) -> 
+terminate(_, {ram, _, ID, Loc}) -> 
     ets:tab2file(ID, Loc),
-    io:format("died!"), ok.
+    io:format("dump died!"), ok;
+terminate(_, {_, _, _, _}) -> 
+    io:format("dump died!"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast({write_batch, L, _ID}, {ram, Top, ID, Loc}) ->
     %ets:insert(ID, {Top, Data}),
