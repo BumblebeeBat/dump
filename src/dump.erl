@@ -53,16 +53,16 @@ save_table(ID, Loc) ->
             %timer:sleep(200),
             save_table(ID, Loc)
     end.
-terminate(_, {ram, Max, ID, Loc}) -> 
+%terminate(_, {ram, Max, ID, Loc}) -> 
     %Loc2 = loc2rest(Loc),
     %db:save(Loc2, term_to_binary({Max})),
     %save_table(ID, Loc),
     %ets:tab2file(ID, Loc, [{sync, true}]),
     %io:fwrite(Loc),
     %io:fwrite("\n"),
-    io:format("ram dump died\n"), 
-    ok;
-terminate(_, {_, _, _, _}) -> 
+%    io:format("ram dump died\n"), 
+%    ok;
+terminate(_, _) -> 
     io:format("dump died!\n"), ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, []) -> {noreply, []};
