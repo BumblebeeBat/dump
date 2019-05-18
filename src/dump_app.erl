@@ -11,7 +11,8 @@
 start(_StartType, _StartArgs) ->
     %Amount = 1000000,
     Amount = 1000,
-    dump_sup:start_link(dump, 32, Amount, ram, "").
+    Type = ram,
+    dump_sup:start_link(dump, 32, Amount, Type, "").
 
 stop(_State) ->
     ok.

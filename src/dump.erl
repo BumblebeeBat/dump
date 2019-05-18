@@ -1,18 +1,22 @@
 -module(dump).
 -behaviour(gen_server).
--export([start_link/4,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, delete/2,put/2,get/2,word/1,highest/1,update/3, put_batch/2]).
+-export([start_link/4,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, delete/2,put/2,get/2,word/1,highest/1,update/3, put_batch/2, off/1]).
 init({Mode, WordSize, ID, Loc}) -> 
     process_flag(trap_exit, true),
     W = case Mode of
             ram -> 
-                case ets:file2tab(Loc) of
-                    {ok, ID} -> ok;
-                    {error, R} ->
-                        %io:fwrite(R),
-                        io:fwrite("make table "),
-                        io:fwrite(ID),
-                        io:fwrite("\n"),
-                        ets:new(ID, [set, named_table, {write_concurrency, false}, compressed])
+                case ets:info(ID) of
+                    undefined ->
+                        case ets:file2tab(Loc) of
+                            {ok, ID} -> ok;
+                            {error, R} ->
+                                                %io:fwrite(R),
+                                io:fwrite("make table "),
+                                io:fwrite(ID),
+                                io:fwrite("\n"),
+                                ets:new(ID, [set, named_table, {write_concurrency, false}, compressed])
+                        end;
+                    _ -> ok
                 end,
                 case db:read(loc2rest(Loc)) of
                     "" -> 1;
@@ -22,10 +26,10 @@ init({Mode, WordSize, ID, Loc}) ->
                 end;
             hd -> WordSize
         end,
-    io:fwrite("start dump0\n"),
-    io:fwrite(integer_to_list(W)),
-    io:fwrite("start dump1\n"),
-    io:fwrite("\n"),
+    %io:fwrite("start dump0\n"),
+    %io:fwrite(integer_to_list(W)),
+    %io:fwrite("start dump1\n"),
+    %io:fwrite("\n"),
     {ok, {Mode, W, ID, Loc}}.
 start_link(WordSize, Id, Mode, Loc) -> 
     X = case Mode of
@@ -41,27 +45,36 @@ save_table(ID, Loc) ->
     io:fwrite("trying to save table "),
     io:fwrite(ID),
     io:fwrite("\n"),
-    %case ets:tab2file(ID, Loc, [{sync, true}]) of
-    case ets:tab2file(ID, Loc) of
+    case ets:tab2file(ID, Loc, [{sync, true}]) of
+    %case ets:tab2file(ID, Loc) of
         ok -> ok;
         {error, R} ->
-            io:fwrite(R),
-            timer:sleep(200),
+            %io:fwrite(R),
+            %timer:sleep(200),
             save_table(ID, Loc)
     end.
 terminate(_, {ram, Max, ID, Loc}) -> 
-    Loc2 = loc2rest(Loc),
-    db:save(Loc2, term_to_binary({Max})),
-    save_table(ID, Loc),
+    %Loc2 = loc2rest(Loc),
+    %db:save(Loc2, term_to_binary({Max})),
+    %save_table(ID, Loc),
     %ets:tab2file(ID, Loc, [{sync, true}]),
-    io:fwrite(Loc),
-    io:fwrite("\n"),
-    io:format("ram dump died!\n"), 
+    %io:fwrite(Loc),
+    %io:fwrite("\n"),
+    io:format("ram dump died\n"), 
     ok;
 terminate(_, {_, _, _, _}) -> 
     io:format("dump died!\n"), ok.
 handle_info(_, X) -> {noreply, X}.
+handle_cast(_, []) -> {noreply, []};
 handle_cast(_, X) -> {noreply, X}.
+handle_call(_, _, []) -> 
+    {reply, {error, off}, []};
+handle_call(off, _, X = {ram, Top, ID, Loc}) -> 
+    Loc2 = loc2rest(Loc),
+    db:save(Loc2, term_to_binary({Top})),
+    save_table(ID, Loc),
+    io:format("ram dump saved\n"), 
+    {reply, ok, []};
 handle_call({delete, Location, _Id}, _From, X = {hd, _, Id, _}) ->
     bits:delete(Id, Location),
     {reply, ok, X};
@@ -140,7 +153,7 @@ max_second([{L, D}|T], X) ->
     max_second(T, max(X, L)).
 
 
-
+off(ID) -> gen_server:call({global, ID}, off).
 delete(X, ID) -> gen_server:call({global, ID}, {delete, X, ID}).
 fast_put(Data, ID) -> 
     %gen_server:call({global, ID}, {fast_write, Data, ID}).
