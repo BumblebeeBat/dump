@@ -141,10 +141,11 @@ handle_call({highest, _ID}, _From, X = {ram, Top, _, _}) ->
 handle_call({highest, ID}, _From, X = {hd, Word, _, _}) ->
     A = bits:highest(ID),
     {reply, A*Word, X};
+handle_call(off, _, X) -> {reply, ok, X};
 handle_call(Other, _, X) ->
     io:fwrite("dump cannot handle that command\n"),
     io:fwrite("\n"),
-    io:fwrite({Other, X}),
+    %io:fwrite({Other, X}),
     {reply, ok, X}.
 
 
