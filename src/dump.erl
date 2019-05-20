@@ -11,9 +11,9 @@ init({Mode, WordSize, ID, Loc}) ->
                             {ok, ID} -> ok;
                             {error, R} ->
                                                 %io:fwrite(R),
-                                io:fwrite("make table "),
-                                io:fwrite(ID),
-                                io:fwrite("\n"),
+                                %io:fwrite("make table "),
+                                %io:fwrite(ID),
+                                %io:fwrite("\n"),
                                 ets:new(ID, [set, named_table, {write_concurrency, false}, compressed])
                         end;
                     _ -> ok
@@ -26,10 +26,10 @@ init({Mode, WordSize, ID, Loc}) ->
                 end;
             hd -> WordSize
         end,
-    io:fwrite("start dump0\n"),
-    io:fwrite(integer_to_list(W)),
-    io:fwrite("start dump1\n"),
-    io:fwrite("\n"),
+    %io:fwrite("start dump0\n"),
+    %io:fwrite(integer_to_list(W)),
+    %io:fwrite("start dump1\n"),
+    %io:fwrite("\n"),
     {ok, {Mode, W, ID, Loc}}.
 start_link(WordSize, Id, Mode, Loc) -> 
     X = case Mode of
