@@ -26,10 +26,10 @@ init({Mode, WordSize, ID, Loc}) ->
                 end;
             hd -> WordSize
         end,
-    %io:fwrite("start dump0\n"),
-    %io:fwrite(integer_to_list(W)),
-    %io:fwrite("start dump1\n"),
-    %io:fwrite("\n"),
+    io:fwrite("start dump0\n"),
+    io:fwrite(integer_to_list(W)),
+    io:fwrite("start dump1\n"),
+    io:fwrite("\n"),
     {ok, {Mode, W, ID, Loc}}.
 start_link(WordSize, Id, Mode, Loc) -> 
     X = case Mode of
