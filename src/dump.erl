@@ -1,6 +1,6 @@
 -module(dump).
 -behaviour(gen_server).
--export([start_link/4,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, delete/2,put/2,get/2,word/1,highest/1,update/3, put_batch/2, off/1]).
+-export([start_link/4,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, delete/2,put/2,get/2,word/1,highest/1,update/3, put_batch/2]).
 init({Mode, WordSize, ID, Loc}) -> 
     process_flag(trap_exit, true),
     W = case Mode of
@@ -62,6 +62,11 @@ save_table(ID, Loc) ->
     %io:fwrite("\n"),
 %    io:format("ram dump died\n"), 
 %    ok;
+terminate(_, {ram, Top, ID, Loc}) -> 
+    Loc2 = loc2rest(Loc),
+    db:save(Loc2, term_to_binary({Top})),
+    save_table(ID, Loc),
+    ok;
 terminate(_, _) -> 
     io:format("dump died!\n"), ok.
 handle_info(_, X) -> {noreply, X}.
@@ -69,12 +74,12 @@ handle_cast(_, []) -> {noreply, []};
 handle_cast(_, X) -> {noreply, X}.
 handle_call(_, _, []) -> 
     {reply, {error, off}, []};
-handle_call(off, _, X = {ram, Top, ID, Loc}) -> 
-    Loc2 = loc2rest(Loc),
-    db:save(Loc2, term_to_binary({Top})),
-    save_table(ID, Loc),
-    io:format("ram dump saved\n"), 
-    {reply, ok, []};
+%handle_call(off, _, X = {ram, Top, ID, Loc}) -> 
+%    Loc2 = loc2rest(Loc),
+%    db:save(Loc2, term_to_binary({Top})),
+%    save_table(ID, Loc),
+%    io:format("ram dump saved\n"), 
+%    {reply, ok, []};
 handle_call({delete, Location, _Id}, _From, X = {hd, _, Id, _}) ->
     bits:delete(Id, Location),
     {reply, ok, X};
