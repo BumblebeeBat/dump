@@ -68,7 +68,8 @@ terminate(_, {ram, Top, ID, Loc}) ->
     save_table(ID, Loc),
     ok;
 terminate(_, _) -> 
-    io:format("dump died!\n"), ok.
+    %io:format("dump died!\n"), 
+    ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, []) -> {noreply, []};
 handle_cast(_, X) -> {noreply, X}.

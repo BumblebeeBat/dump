@@ -15,7 +15,8 @@ code_change(_OldVsn, State, _Extra) -> {ok, State}.
 start_link(Id, File, Size) -> gen_server:start_link({global, Id}, ?MODULE, {File, Size}, []).
 terminate(_, {Bits, _Top, _Highest, File, _Size}) -> 
     db:save(File, Bits),
-    io:format("died!"), ok.
+    %io:format("died!"), 
+    ok.
 handle_info(_, X) -> {noreply, X}.
 handle_cast(_, X) -> {noreply, X}.
 handle_call({delete, Height}, _From, {Bits, Top, Highest, File, Size})-> 
