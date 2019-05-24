@@ -1,11 +1,24 @@
 -module(dump_sup).
 -behaviour(supervisor).
--export([start_link/5,init/1,stop/0]).
+-export([start_link/5,init/1,stop/1]).
 start_link(ID, Size, Amount, Mode, Location) -> %Mode is ram or hd
     L = atom_to_list(ID),
     A = list_to_atom(L ++ "sup"),
     supervisor:start_link({global, A}, ?MODULE, [ID, Size, Amount, Mode, Location]).
-stop() -> halt().
+stop(ID) -> 
+    L = atom_to_list(ID),
+    A = {global, list_to_atom(L ++ "sup")},
+    Mode = dump:mode(ID),
+    supervisor:terminate_child(A, ID),
+    case Mode of 
+        ram -> ok;
+        hd ->
+                  A2 = dump_ids:bits(ID),
+                  A3 = dump_ids:file_manager(ID),
+                  supervisor:terminate_child(A, A2),
+                  supervisor:terminate_child(A, A3)
+    end,
+    ok.
 
 init([ID, Size, Amount, Mode, Location]) ->
     L = atom_to_list(ID),
