@@ -42,9 +42,9 @@ loc2rest(Loc) ->
     {F, _} = lists:split(length(Loc) - 3, Loc),
     Loc2 = F ++ "_rest.db".
 save_table(ID, Loc) ->
-    io:fwrite("trying to save table "),
-    io:fwrite(ID),
-    io:fwrite("\n"),
+    %io:fwrite("trying to save table "),
+    %io:fwrite(ID),
+    %io:fwrite("\n"),
     case ets:tab2file(ID, Loc, [{sync, true}]) of
     %case ets:tab2file(ID, Loc) of
         ok -> ok;
