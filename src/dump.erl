@@ -1,6 +1,8 @@
 -module(dump).
 -behaviour(gen_server).
--export([start_link/4,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, delete/2,put/2,get/2,word/1,highest/1,update/3, put_batch/2, mode/1]).
+-export([start_link/4,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, delete/2,put/2,get/2,word/1,highest/1,update/3, put_batch/2, mode/1,
+        quick_save/1%only works in ram mode.
+        ]).
 init({Mode, WordSize, ID, Loc}) -> 
     process_flag(trap_exit, true),
     W = case Mode of
@@ -71,7 +73,11 @@ terminate(_, _) ->
     %io:format("dump died!\n"), 
     ok.
 handle_info(_, X) -> {noreply, X}.
-handle_cast(_, []) -> {noreply, []};
+handle_cast(quick_save, {ram, Top, ID, Loc}) -> 
+    Loc2 = loc2rest(Loc),
+    db:save(Loc2, term_to_binary({Top})),
+    save_table(ID, Loc),
+    {noreply, {ram, Top, ID, Loc}};
 handle_cast(_, X) -> {noreply, X}.
 %handle_call(_, _, []) -> 
 %    {reply, {error, off}, []};
@@ -161,7 +167,8 @@ max_second([], X) -> X;
 max_second([{L, D}|T], X) ->
     max_second(T, max(X, L)).
 
-
+quick_save(ID) ->
+    gen_server:cast({global, ID}, quick_save).
 off(ID) -> gen_server:call({global, ID}, off).
 delete(X, ID) -> gen_server:call({global, ID}, {delete, X, ID}).
 fast_put(Data, ID) -> 
