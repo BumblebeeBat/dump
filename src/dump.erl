@@ -1,25 +1,14 @@
 -module(dump).
 -behaviour(gen_server).
 -export([start_link/4,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, delete/2,put/2,get/2,word/1,highest/1,update/3, put_batch/2, mode/1,
+         reload_ets/1,%only in ram mode,
         quick_save/1%only works in ram mode.
         ]).
 init({Mode, WordSize, ID, Loc}) -> 
     process_flag(trap_exit, true),
     W = case Mode of
             ram -> 
-                case ets:info(ID) of
-                    undefined ->
-                        case ets:file2tab(Loc) of
-                            {ok, ID} -> ok;
-                            {error, R} ->
-                                                %io:fwrite(R),
-                                %io:fwrite("make table "),
-                                %io:fwrite(ID),
-                                %io:fwrite("\n"),
-                                ets:new(ID, [set, named_table, {write_concurrency, false}, compressed])
-                        end;
-                    _ -> ok
-                end,
+                load_ets(ID, Loc),
                 case db:read(loc2rest(Loc)) of
                     "" -> 1;
                     X -> 
@@ -73,6 +62,10 @@ terminate(_, _) ->
     %io:format("dump died!\n"), 
     ok.
 handle_info(_, X) -> {noreply, X}.
+handle_cast(reload_ets, {ram, Top, ID, Loc}) -> 
+    ets:delete(ID),
+    load_ets(ID, Loc),
+    {noreply, {ram, Top, ID, Loc}};
 handle_cast(quick_save, {ram, Top, ID, Loc}) -> 
     Loc2 = loc2rest(Loc),
     db:save(Loc2, term_to_binary({Top})),
@@ -166,9 +159,27 @@ handle_call(Other, _, X) ->
 max_second([], X) -> X;
 max_second([{L, D}|T], X) ->
     max_second(T, max(X, L)).
+load_ets(ID, Loc) ->
+    case ets:info(ID) of
+        undefined ->
+            case ets:file2tab(Loc) of
+                {ok, ID} -> ok;
+                {error, R} ->
+                    %io:fwrite(R),
+                    %io:fwrite("make table "),
+                    %io:fwrite(ID),
+                    %io:fwrite("\n"),
+                    ets:new(ID, [set, named_table, {write_concurrency, false}, compressed])
+            end;
+        _ -> ok
+    end.
+    
+
 
 quick_save(ID) ->
     gen_server:cast({global, ID}, quick_save).
+reload_ets(ID) ->
+    gen_server:cast({global, ID}, reload_ets).
 off(ID) -> gen_server:call({global, ID}, off).
 delete(X, ID) -> gen_server:call({global, ID}, {delete, X, ID}).
 fast_put(Data, ID) -> 
