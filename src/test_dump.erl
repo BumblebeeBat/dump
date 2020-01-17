@@ -12,7 +12,7 @@ test_batch() ->
     dump:get(3, ID).
 
 test_init(ID, Size) ->
-    dump_sup:start_link(ID, Size, 100002, hd, "").
+    dump_sup:start_link(ID, Size, 100002, ram, "").
 
 testlta() ->
     %41077 = 0.04 seconds

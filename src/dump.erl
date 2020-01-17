@@ -2,19 +2,13 @@
 -behaviour(gen_server).
 -export([start_link/4,code_change/3,handle_call/3,handle_cast/2,handle_info/2,init/1,terminate/2, delete/2,put/2,get/2,word/1,highest/1,update/3, put_batch/2, mode/1,
          reload_ets/1,%only in ram mode,
-        quick_save/1%only works in ram mode.
+         quick_save/1%only works in ram mode.
         ]).
 init({Mode, WordSize, ID, Loc}) -> 
     process_flag(trap_exit, true),
     W = case Mode of
             ram -> 
-                load_ets(ID, Loc),
-                case db:read(loc2rest(Loc)) of
-                    "" -> 1;
-                    X -> 
-                        {Y} = binary_to_term(X),
-                        Y
-                end;
+                load_ets(ID, Loc);
             hd -> WordSize
         end,
     %io:fwrite("start dump0\n"),
@@ -64,8 +58,9 @@ terminate(_, _) ->
 handle_info(_, X) -> {noreply, X}.
 handle_cast(reload_ets, {ram, Top, ID, Loc}) -> 
     ets:delete(ID),
-    load_ets(ID, Loc),
-    {noreply, {ram, Top, ID, Loc}};
+    timer:sleep(100),
+    Top2 = load_ets(ID, Loc),
+    {noreply, {ram, Top2, ID, Loc}};
 handle_cast(quick_save, {ram, Top, ID, Loc}) -> 
     Loc2 = loc2rest(Loc),
     db:save(Loc2, term_to_binary({Top})),
@@ -172,7 +167,14 @@ load_ets(ID, Loc) ->
                     ets:new(ID, [set, named_table, {write_concurrency, false}, compressed])
             end;
         _ -> ok
+    end,
+    case db:read(loc2rest(Loc)) of
+        "" -> 1;
+        X -> 
+            {Y} = binary_to_term(X),
+            Y
     end.
+    
     
 
 
