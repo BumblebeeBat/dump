@@ -65,11 +65,6 @@ handle_cast(reload_ets, {ram, Top, ID, Loc}) ->
     timer:sleep(100),
     Top2 = load_ets(ID, Loc),
     {noreply, {ram, Top2, ID, Loc}};
-handle_cast(quick_save, {ram, Top, ID, Loc}) -> 
-    Loc2 = loc2rest(Loc),
-    db:save(Loc2, term_to_binary({Top})),
-    save_table(ID, Loc),
-    {noreply, {ram, Top, ID, Loc}};
 handle_cast(_, X) -> {noreply, X}.
 %handle_call(_, _, []) -> 
 %    {reply, {error, off}, []};
@@ -79,6 +74,11 @@ handle_cast(_, X) -> {noreply, X}.
 %    save_table(ID, Loc),
 %    io:format("ram dump saved\n"), 
 %    {reply, ok, []};
+handle_call(quick_save, _, {ram, Top, ID, Loc}) -> 
+    Loc2 = loc2rest(Loc),
+    db:save(Loc2, term_to_binary({Top})),
+    save_table(ID, Loc),
+    {reply, ok, {ram, Top, ID, Loc}};
 handle_call(mode, _From, X = {Y, _, _, _}) ->
     {reply, Y, X};
 handle_call({delete, Location, _Id}, _From, X = {hd, _, Id, _}) ->
@@ -183,7 +183,7 @@ load_ets(ID, Loc) ->
 
 
 quick_save(ID) ->
-    gen_server:cast({global, ID}, quick_save).
+    gen_server:call({global, ID}, quick_save).
 reload_ets(ID) ->
     gen_server:cast({global, ID}, reload_ets).
 delete_all(ID) ->
